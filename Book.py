@@ -22,7 +22,7 @@ from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 load_dotenv()
 
 os.environ["USER_AGENT"] = "MyNLPGeeksforgeeksRAG/1.0 (daudimujabi@gmail.com)"
-#load the hidden api key from the .env
+#api keys
 google_api_key = os.getenv("GOOGLE_API_KEY")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
