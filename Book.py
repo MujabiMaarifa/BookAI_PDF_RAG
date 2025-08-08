@@ -1,5 +1,5 @@
 from langchain import hub
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import START, StateGraph
@@ -45,14 +45,14 @@ embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_a
 vector_store = InMemoryVectorStore(embeddings)
 
 #define the document loader
-loader = PyPDFLoader("programming.pdf")
+loader = PyMuPDFLoader("programming.pdf")
 
 #load the document using the loader extension
 docs = loader.load()
 
 #split the texts using the recursive text splitter character for easy and clear access of content of the defined document
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size = 2000, chunk_overlap = 200
+    chunk_size = 3000, chunk_overlap = 300
 )
 add_splits = text_splitter.split_documents(docs)
 
@@ -87,16 +87,25 @@ def generate(state: State):
     messages.append(HumanMessage(content=user_input))
     if state['context']:
         docs_content = "\n\n".join(doc.page_content for doc in state["context"])
-        messages = prompt.invoke({"question" : state["question"], "context" : docs_content})
+        user_prompt = prompt.invoke({
+            "question":state['question'],
+            "context":docs_content
+        })
+        messages.extend(user_prompt.to_messages())
         response = gemini_llm.invoke(messages)
         
     #fall back generation
     else:
-        messages = prompt.invoke(f"Answer the question using your own knowledge {state['question']}")
+        user_prompt = prompt.invoke({
+            "question":f"Answer the question using your own knowledge {state['question']}",
+            "context":""
+            })
+        messages.extend(user_prompt.to_messages())
         response = openai_llm.invoke(messages)
         
 
     messages.append(AIMessage(content=response.content))
+
     return {
         "answer": response.content,
         "chat_history": messages
@@ -112,7 +121,7 @@ print("Type your question below. Type 'exit' or 'quit' to end the conversation.\
 
 if __name__ == "__main__":
     chat_history = []
-    
+
     while True:
         user_input = input("You🔍: ").strip()
         greetings = {"hi", "hello", "hey", "how are you", "good morning", "good evening", "bonjour"}
