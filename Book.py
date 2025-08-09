@@ -97,7 +97,7 @@ def generate(state: State):
     #fall back generation
     else:
         user_prompt = prompt.invoke({
-            "question":f"Answer the question using your own knowledge {state['question']}",
+            "question":f"You are Mujabi Maarifa Bot. Answer the question using your own knowledge {state['question']}",
             "context":""
             })
         messages.extend(user_prompt.to_messages())
